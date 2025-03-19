@@ -1,0 +1,149 @@
+1) Войдите под пользователем user1 из практики 2 
+
+> root@eltex-practice2-pg1-v24:~# su - user1
+
+2) Подсчитайте количество процессов, имеющих несколько потоков выполнения
+
+> user1@eltex-practice2-pg1-v24:~$ ps -e -o nlwp --no-headers | awk '$1 > 1' | wc -l
+11
+
+3) Запустите top и настройте вывод полей с информацией о процессе следующим образом:
+	• удалите поля VIRT, RES, SHR;
+	• добавьте поле RUSER и сделайте так, чтобы это поле было
+	показано после поля USER;
+
+top - 06:15:56 up 1 day, 21:01,  2 users,  load average: 0.00, 0.00, 0.00
+Tasks: 112 total,   1 running, 111 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.0 us,  0.0 sy,  0.0 ni,100.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+MiB Mem :   3916.0 total,   3019.5 free,    448.3 used,    677.8 buff/cache
+MiB Swap:   3185.0 total,   3185.0 free,      0.0 used.   3467.8 avail Mem
+
+    PID USER     RUSER     PR  NI S  %CPU  %MEM     TIME+ COMMAND
+      1 root     root      20   0 S   0.0   0.3   0:02.69 systemd
+      2 root     root      20   0 S   0.0   0.0   0:00.01 kthreadd
+      3 root     root      20   0 S   0.0   0.0   0:00.00 pool_workqueue_release
+      4 root     root       0 -20 I   0.0   0.0   0:00.00 kworker/R-rcu_g
+      5 root     root       0 -20 I   0.0   0.0   0:00.00 kworker/R-rcu_p
+      6 root     root       0 -20 I   0.0   0.0   0:00.00 kworker/R-slub_
+      7 root     root       0 -20 I   0.0   0.0   0:00.00 kworker/R-netns
+     10 root     root       0 -20 I   0.0   0.0   0:00.23 kworker/0:0H-kblockd
+     12 root     root       0 -20 I   0.0   0.0   0:00.00 kworker/R-mm_pe
+     13 root     root      20   0 I   0.0   0.0   0:00.00 rcu_tasks_kthread
+     14 root     root      20   0 I   0.0   0.0   0:00.00 rcu_tasks_rude_kthread
+     15 root     root      20   0 I   0.0   0.0   0:00.00 rcu_tasks_trace_kthread
+     16 root     root      20   0 S   0.0   0.0   0:00.03 ksoftirqd/0
+     17 root     root      20   0 I   0.0   0.0   0:01.30 rcu_preempt
+     18 root     root      rt   0 S   0.0   0.0   0:00.51 migration/0
+     19 root     root     -51   0 S   0.0   0.0   0:00.00 idle_inject/0
+     20 root     root      20   0 S   0.0   0.0   0:00.00 cpuhp/0
+     21 root     root      20   0 S   0.0   0.0   0:00.00 cpuhp/1
+     22 root     root     -51   0 S   0.0   0.0   0:00.00 idle_inject/1
+     23 root     root      rt   0 S   0.0   0.0   0:00.70 migration/1
+     24 root     root      20   0 S   0.0   0.0   0:00.02 ksoftirqd/1
+     26 root     root       0 -20 I   0.0   0.0   0:00.00 kworker/1:0H-events_highpri
+     27 root     root      20   0 S   0.0   0.0   0:00.00 kdevtmpfs
+     28 root     root       0 -20 I   0.0   0.0   0:00.00 kworker/R-inet_
+     30 root     root      20   0 S   0.0   0.0   0:00.00 kauditd
+     31 root     root      20   0 S   0.0   0.0   0:00.03 khungtaskd
+     32 root     root      20   0 S   0.0   0.0   0:00.00 oom_reaper
+
+4) В другом терминальном окне выполните команду passwd и оставьте ее в состоянии запроса текущего пароля
+
+> user1@eltex-practice2-pg1-v24:~$ passwd
+Changing password for user1.
+Current password:
+
+5) Перейдите в терминальное окно с top и выполните следующие действия:
+	• выведите все процессы, для которых реальным пользователем 	является пользователь, которым вы вошли в сеанс;
+	• найдите процесс, запущенный командой passwd;
+	• отправьте этому процессу сигналы 15 (SIGTERM), 2 (SIGINT), 3 	(SIGQUIT), 9(SIGKILL)
+
+
+top - 06:20:29 up 1 day, 21:06,  3 users,  load average: 0.00, 0.00, 0.00
+Tasks: 119 total,   2 running, 117 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.0 us,  0.0 sy,  0.0 ni,100.0 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+MiB Mem :   3916.0 total,   3009.5 free,    458.0 used,    678.1 buff/cache
+MiB Swap:   3185.0 total,   3185.0 free,      0.0 used.   3458.0 avail Mem
+
+    PID USER     RUSER     PR  NI S  %CPU  %MEM     TIME+ COMMAND
+   7274 user1    user1     20   0 S   0.0   0.1   0:00.01 bash
+   7300 user1    user1     20   0 R   0.0   0.1   0:00.27 top
+   7379 user1    user1     20   0 S   0.0   0.1   0:00.01 bash
+   7389 root     user1     20   0 S   0.0   0.1   0:00.00 passwd
+
+Сигнал 15 (SIGTERM)
+Нажал k -> Ввел 7389 -> Ввел 15 -> Enter.
+
+Сигнал 2 (SIGINT)
+Нажал k -> Ввел 7389 -> Ввел 2 → Enter.
+
+Сигнал 3 (SIGQUIT)
+Нажал k -> Ввел 7389 -> Ввел 3 -> Enter.
+
+Сигнал 9 (SIGKILL)
+Нажал k -> Ввел 7389 -> Ввел 9 -> Enter.
+
+После этого процесс завершился:
+> user1@eltex-practice2-pg1-v24:~$ passwd
+Changing password for user1.
+Current password: Killed
+
+6) Выполните команду vim ~/file_task3.txt и нажмите Ctrl-Z
+
+user1@eltex-practice2-pg1-v24:~$ vim ~/file_task3.txt
+
+[1]+  Stopped                 vim ~/file_task3.txt
+
+7) Выполните команду sleep 600, нажмите Ctrl-Z и выполните команду jobs
+
+> user1@eltex-practice2-pg1-v24:~$ sleep 600
+^Z
+[2]+  Stopped                 sleep 600
+> user1@eltex-practice2-pg1-v24:~$ jobs
+[1]-  Stopped                 vim ~/file_task3.txt
+[2]+  Stopped                 sleep 600
+
+8) Последнее задание (sleep 600) сделайте фоновым
+
+> user1@eltex-practice2-pg1-v24:~$ bg %2
+[2]+ sleep 600 &
+
+9) Измените число NICE у задания (sleep 600), сделав его равным 10
+
+> user1@eltex-practice2-pg1-v24:~$ jobs -l
+[1]+  7413 Stopped                 vim ~/file_task3.txt
+[2]-  7436 Running                 sleep 600 &
+> user1@eltex-practice2-pg1-v24:~$ renice -n 10 -p 7436
+7436 (process ID) old priority 0, new priority 10
+
+10) Проверьте, что число NICE у этого задания изменилось
+
+> user1@eltex-practice2-pg1-v24:~$ ps -l 7436
+F S   UID     PID    PPID  C PRI  NI ADDR SZ WCHAN  TTY        TIME CMD
+0 S  1001    7436    7274  0  90  10 -  1421 do_sys pts/0      0:00 sleep 600
+
+11) Сделайте задание vim ~/file_ task3.txt активным и выйдите из редактора
+
+> user1@eltex-practice2-pg1-v24:~$ fg %1
+vim ~/file_task3.txt
+> user1@eltex-practice2-pg1-v24:~$ jobs
+[2]+  Running                 sleep 600 &
+
+12) Отправьте сигнал 15 (SIGTERM) заданию sleep 600 и выполните команду jobs
+
+> user1@eltex-practice2-pg1-v24:~$ kill -15 %2
+> user1@eltex-practice2-pg1-v24:~$ jobs
+[2]+  Terminated              sleep 600
+
+13) Создайте перехватчик сигналов SIGINT и SIGQUIT внутри командного интерпретатора, который выводит сообщение «Меня голыми руками не возьмёшь!» (используйте встроенную команду trap) и отправьте сигналы самому себе 
+
+> user1@eltex-practice2-pg1-v24:~$ trap 'echo "Меня голыми руками не возьмёшь!"' INT QUIT
+Меня голыми руками не возьмёшь!$ ^C
+
+Меня голыми руками не возьмёшь!$ ^\
+
+> user1@eltex-practice2-pg1-v24:~$ kill -INT $$
+Меня голыми руками не возьмёшь!
+> user1@eltex-practice2-pg1-v24:~$ kill -QUIT $$
+Меня голыми руками не возьмёшь!
+
