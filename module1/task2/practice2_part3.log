@@ -1,0 +1,234 @@
+1) Установите параметры git в соответствии с вашими учетными данными:
+
+> root@eltex-practice2-pg1-v24:~# git config --global user.name "Nikonoffcmi"
+> root@eltex-practice2-pg1-v24:~# git config --global user.email  "nikchumadev@gmail.com"
+> root@eltex-practice2-pg1-v24:~# git config --global init.defaultBranch main
+
+2) Создайте ключ ssh
+
+> root@eltex-practice2-pg1-v24:~# ssh-keygen -t ed25519 -f ~/.ssh/eltex-practice
+Generating public/private ed25519 key pair.
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /root/.ssh/eltex-practice
+Your public key has been saved in /root/.ssh/eltex-practice.pub
+The key fingerprint is:
+SHA256:xZJo9GnKEuAPzBgIuyWy/cEz21+DVbJrYyCFRSCH3ic root@eltex-practice2-pg1-v24
+The key's randomart image is:
++--[ED25519 256]--+
+|= . ..+oo        |
+|.B ..+ = +       |
+|= *...+ B + .    |
+|.* +.+E+.o +     |
+|o . B +oS o      |
+|   . B . + .     |
+|    o . . B      |
+|       . + o     |
+|        .        |
++----[SHA256]-----+
+
+3) Подключите этот комьютер к github
+
+> root@eltex-practice2-pg1-v24:~# gh auth login
+? What account do you want to log into? GitHub.com
+? What is your preferred protocol for Git operations on this host? SSH
+? Upload your SSH public key to your GitHub account? /root/.ssh/eltex-practice.pub
+? Title for your SSH key: eltex-practice2-pg1-v24
+? How would you like to authenticate GitHub CLI? Login with a web browser
+
+! First copy your one-time code: C56F-D314
+Press Enter to open github.com in your browser...
+! Failed opening a web browser at https://github.com/login/device
+  exec: "xdg-open,x-www-browser,www-browser,wslview": executable file not found in $PATH
+  Please try entering the URL in your browser manually
+
+✓ Authentication complete.
+- gh config set -h github.com git_protocol ssh
+✓ Configured git protocol
+! Authentication credentials saved in plain text
+✓ Uploaded the SSH key to your GitHub account: /root/.ssh/eltex-practice.pub
+✓ Logged in as Nikonoffcmi
+
+4) Укажите автоматическую авторизацию только для сайта github.com
+
+> root@eltex-practice2-pg1-v24:~# gh auth setup-git --hostname github.com
+
+5) Убедиться, что все в порядке 
+
+> root@eltex-practice2-pg1-v24:~# gh auth status
+github.com
+  ✓ Logged in to github.com account Nikonoffcmi (/root/.config/gh/hosts.yml)
+  - Active account: true
+  - Git operations protocol: ssh
+  - Token: gho_************************************
+  - Token scopes: 'admin:public_key', 'gist', 'read:org', 'repo'
+
+6) Создайте репозиторий на сервере github
+
+> root@eltex-practice2-pg1-v24:~# gh repo create --public eltex
+✓ Created repository Nikonoffcmi/eltex on GitHub
+  https://github.com/Nikonoffcmi/eltex
+
+7) наполнить его
+
+> root@eltex-practice2-pg1-v24:~# mkdir ~/eltex && cd ~/eltex
+> root@eltex-practice2-pg1-v24:~/eltex# echo "# Весенняя школа Элтекс" >> README.md
+> root@eltex-practice2-pg1-v24:~/eltex# git init
+        git add README.md
+        git commit -m "first commit"
+        git branch -M main
+Initialized empty Git repository in /root/eltex/.git/
+[main (root-commit) 884cd89] first commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 README.md
+> root@eltex-practice2-pg1-v24:~/eltex# git remote add origin https://github.com/Nikonoffcmi/eltex.git
+> root@eltex-practice2-pg1-v24:~/eltex# git status
+On branch main
+nothing to commit, working tree clean
+> root@eltex-practice2-pg1-v24:~/eltex# git push -u origin main
+        mkdir -p module1/task1
+        mkdir module1/task2
+        mkdir module1/task3
+Enumerating objects: 3, done.
+Counting objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 262 bytes | 262.00 KiB/s, done.
+Total 3 (delta 0), reused 0 (delta 0), pack-reused 0
+To https://github.com/Nikonoffcmi/eltex.git
+ * [new branch]      main -> main
+branch 'main' set up to track 'origin/main'.
+
+скопируйте с сервера для 1 практики отчеты в каталоги task* используя команду scp
+
+> eltex-pg1-v24@eltex:~$ scp /home/eltex-pg1-v24/eltex-pg1-v24_part2.log root@172.16.9.198:/root/eltex/module1/task1
+eltex-pg1-v24_part2.log                       100% 4097     8.2MB/s   00:00
+> eltex-pg1-v24@eltex:~$ scp /home/eltex-pg1-v24/eltex-pg1-v24_part3.log  root@172.16.9.198:/root/eltex/module1/task1
+eltex-pg1-v24_part3.log                       100% 2150     6.1MB/s   00:00
+
+> root@eltex-practice2-pg1-v24:~/eltex/module1/task1# ls
+eltex-pg1-v24_part2.log  eltex-pg1-v24_part3.log
+> root@eltex-practice2-pg1-v24:~/eltex/module1/task1# git add .
+        git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+        new file:   eltex-pg1-v24_part2.log
+        new file:   eltex-pg1-v24_part3.log
+
+> root@eltex-practice2-pg1-v24:~/eltex/module1/task1# git commit -m "task1"
+[main 8383c4a] task1
+ 2 files changed, 155 insertions(+)
+ create mode 100644 module1/task1/eltex-pg1-v24_part2.log
+ create mode 100644 module1/task1/eltex-pg1-v24_part3.log
+> root@eltex-practice2-pg1-v24:~/eltex/module1/task1# git push
+Enumerating objects: 7, done.
+Counting objects: 100% (7/7), done.
+Delta compression using up to 2 threads
+Compressing objects: 100% (5/5), done.
+Writing objects: 100% (6/6), 2.79 KiB | 2.79 MiB/s, done.
+Total 6 (delta 0), reused 0 (delta 0), pack-reused 0
+To https://github.com/Nikonoffcmi/eltex.git
+   884cd89..8383c4a  main -> main
+
+8) Клонируйте ваш репозиторий
+
+> root@eltex-practice2-pg1-v24:~/eltex_clone# git clone https://github.com/Nikonoffcmi/eltex.git
+Cloning into 'eltex'...
+remote: Enumerating objects: 9, done.
+remote: Counting objects: 100% (9/9), done.
+remote: Compressing objects: 100% (6/6), done.
+remote: Total 9 (delta 0), reused 9 (delta 0), pack-reused 0 (from 0)
+Receiving objects: 100% (9/9), done.
+
+9) Внесите изменение в основном каталоге, не забыв про git add/commit/push, выполните в каталоге с клоном
+
+> root@eltex-practice2-pg1-v24:~/eltex_clone# cd -
+/root/eltex/module1/task1
+> root@eltex-practice2-pg1-v24:~/eltex/module1/task1# cd ../task2/
+> root@eltex-practice2-pg1-v24:~/eltex/module1/task2# ls
+practice2_part1.log
+> root@eltex-practice2-pg1-v24:~/eltex/module1/task2# git add .
+> root@eltex-practice2-pg1-v24:~/eltex/module1/task2# git commit -m "task2 part 1"[main e5a8e9c] task2 part 1
+ 1 file changed, 347 insertions(+)
+ create mode 100644 module1/task2/practice2_part1.log
+> root@eltex-practice2-pg1-v24:~/eltex/module1/task2# git push
+Enumerating objects: 7, done.
+Counting objects: 100% (7/7), done.
+Delta compression using up to 2 threads
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (5/5), 5.70 KiB | 5.70 MiB/s, done.
+Total 5 (delta 0), reused 0 (delta 0), pack-reused 0
+To https://github.com/Nikonoffcmi/eltex.git
+   8383c4a..e5a8e9c  main -> main
+
+> root@eltex-practice2-pg1-v24:~/eltex_clone/eltex# git fetch
+remote: Enumerating objects: 7, done.
+remote: Counting objects: 100% (7/7), done.
+remote: Compressing objects: 100% (4/4), done.
+remote: Total 5 (delta 0), reused 5 (delta 0), pack-reused 0 (from 0)
+Unpacking objects: 100% (5/5), 5.68 KiB | 5.68 MiB/s, done.
+From https://github.com/Nikonoffcmi/eltex
+   8383c4a..e5a8e9c  main       -> origin/main
+> root@eltex-practice2-pg1-v24:~/eltex_clone/eltex# git log origin/main
+commit e5a8e9c57b60dde2c734de1ad9de7abfaf58d6e6 (origin/main, origin/HEAD)
+Author: Nikonoffcmi <nikchumadev@gmail.com>
+Date:   Wed Mar 19 04:41:56 2025 +0000
+
+    task2 part 1
+
+commit 8383c4afbbc19e01a498b8d8e6f5f23901b9017c (HEAD -> main)
+Author: Nikonoffcmi <nikchumadev@gmail.com>
+Date:   Wed Mar 19 04:35:48 2025 +0000
+
+    task1
+
+commit 884cd8994aa0ab77feb8f6f80a029db744e17984
+Author: Nikonoffcmi <nikchumadev@gmail.com>
+Date:   Wed Mar 19 04:26:18 2025 +0000
+
+    first commit
+> root@eltex-practice2-pg1-v24:~/eltex_clone/eltex# git diff main origin/main
+diff --git a/module1/task2/practice2_part1.log b/module1/task2/practice2_part1.l               og
+new file mode 100644
+index 0000000..a0f4c23
+--- /dev/null
++++ b/module1/task2/practice2_part1.log
+@@ -0,0 +1,347 @@
++1) Создайте на сервере для 1 практики ключ ssh при помощи программы ssh-keygen
++
++> ssh-keygen -t rsa
++Generating public/private rsa key pair.
++Enter file in which to save the key (/home/eltex-pg1-v24/.ssh/id_rsa):
++Created directory '/home/eltex-pg1-v24/.ssh'.
++Enter passphrase (empty for no passphrase):
++Enter same passphrase again:
++Your identification has been saved in /home/eltex-pg1-v24/.ssh/id_rsa
++Your public key has been saved in /home/eltex-pg1-v24/.ssh/id_rsa.pub
++The key fingerprint is:
++SHA256:Jz6hqRxgRmIxDbIxewgfA/l9WmgHEvC7q2D2tU7lYtg eltex-pg1-v24@eltex
++The key's randomart image is:
+++---[RSA 3072]----+
++|BB*.             |
++|+O++.            |
++|=o=o o           |
++|.+..+ +          |
++|  =. = .S .      |
++| o o+ o+ +       |
++|.o...Eo.o        |
++|+ .o+oo  .       |
++|....+o           |
+++----[SHA256]-----+
++
++2) Скопируйте созданный ключ на сервер для 2 практики для пользователя root при                помощи программы ssh-copy-id
++
++> ssh-copy-id -i ~/.ssh/id_rsa.pub root@172.16.9.198
+> root@eltex-practice2-pg1-v24:~/eltex_clone/eltex# git merge
+Updating 8383c4a..e5a8e9c
+Fast-forward
+ module1/task2/practice2_part1.log | 347 ++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 347 insertions(+)
+ create mode 100644 module1/task2/practice2_part1.log
+
+
+
