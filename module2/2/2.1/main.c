@@ -1,7 +1,7 @@
-#include "manual.h"
+#include "menu.h"
 
 int main(int argc, char const *argv[])
 {
-    menu();
+    Menu();
     return 0;
 }
