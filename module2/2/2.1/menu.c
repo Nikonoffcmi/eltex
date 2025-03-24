@@ -16,7 +16,7 @@ void Print_contact(Contact *c) {
             c->person.name,
             c->person.patronymic ? " " : "",
             c->person.patronymic ? c->person.patronymic : "");
-    printf("\nМесто работы: %s\nДолжность:  %s", c->person.workplace ? c->person.workplace : "-", 
+    printf("\nМесто работы: %s\nДолжность: %s", c->person.workplace ? c->person.workplace : "-", 
             c->person.job ? c->person.job : "-");
     
     printf("\nПочта (%d):", c->email_counter);
@@ -162,7 +162,7 @@ void Edit_contact_menu(Manual *manual) {
                     printf("Почта: "); scanf("%99s", data);
                     Add_email(target, data);
                 } else if (choice == 2){
-                    printf("Введите индекс для удаления: ");
+                    printf("Введите индекс почты для удаления: ");
                     scanf("%d", &index);
                     Remove_email(target, index-1);
                 }
@@ -172,10 +172,10 @@ void Edit_contact_menu(Manual *manual) {
                 printf("1. Добавить номер телефона\n2. Удалить номер телефона\n3. Выйти\nВыбрать пункт: ");
                 scanf("%d", &choice);
                 if(choice == 1) {
-                    printf("Phone: "); scanf("%99s", data);
+                    printf("Номер телефона: "); scanf("%99s", data);
                     Add_phone(target, data);
                 } else if (choice == 2 ){
-                    printf("Enter index to remove: ");
+                    printf("Введите индекс телефона для удаления: ");
                     scanf("%d", &index);
                     Remove_phone(target, index-1);
                 }
@@ -185,10 +185,10 @@ void Edit_contact_menu(Manual *manual) {
                 printf("1. Добавить соцсеть\n2. Удалить соцсеть\n3. Выйти\nВыбрать пункт: ");
                 scanf("%d", &choice);
                 if(choice == 1) {
-                    printf("Social: "); scanf("%99s", data);
+                    printf("Соцсеть: "); scanf("%99s", data);
                     Add_social(target, data);
                 } else if (choice == 2){
-                    printf("Enter index to remove: ");
+                    printf("Введите индекс соцсети для удаления: ");
                     scanf("%d", &index);
                     Remove_social(target, index-1);
                 }
