@@ -2,6 +2,8 @@
 #include <stdarg.h>
 #include <math.h>
 
+#include "calculator.h"
+
 double add(int count, ...) {
     va_list args;
     va_start(args, count);
