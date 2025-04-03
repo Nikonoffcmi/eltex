@@ -75,9 +75,9 @@ int getBalance(Contact *node) {
 }
 
 int compareContacts(Contact *a, Contact *b) {
-    int cmp = strcmp(a->person.last_name, b->person.last_name);
+    int cmp = (a->ID > b->ID) ? 1 : 0;
     if(cmp == 0) {
-        cmp = strcmp(a->person.name, b->person.name);
+        cmp = (a->ID < b->ID) ? -1 : 0;
     }
     return cmp;
 }
@@ -214,8 +214,8 @@ void BalanceTree(Manual *manual) {
 
 Contact* minValueNode(Contact *node) {
     Contact *current = node;
-    while(current && current->left)
-        current = current->left;
+    while(current && current->right)
+        current = current->right;
     return current;
 }
 
@@ -262,12 +262,12 @@ Contact* deleteNode(Contact *root, int id, Manual *manual) {
                 root = temp;        
             }
         } else {
-            Contact *temp = minValueNode(root->right);
+            Contact *temp = minValueNode(root->left);
             
             Free_contact(root); 
             CopyContactData(root, temp); 
             
-            root->right = deleteNode(root->right, temp->ID, manual);
+            root->left = deleteNode(root->left, temp->ID, manual);
         }
     }
 

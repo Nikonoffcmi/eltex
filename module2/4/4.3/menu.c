@@ -100,10 +100,8 @@ void printTree(Contact *root, int level, int is_right) {
     static char* lines[1024];
     static int last_level = -1;
     
-    // Вывод правого поддерева
     printTree(root->right, level + 1, 1);
 
-    // Отрисовка линий
     for(int i = 0; i < level; i++) {
         if(i == level-1) {
             printf(is_right ? " ┌──" : " └──");
@@ -116,19 +114,17 @@ void printTree(Contact *root, int level, int is_right) {
         }
     }
     
-    // Вывод информации о контакте
     printf("(%d) %s %s\n", root->ID, 
            root->person.last_name, 
            root->person.name);
     
     last_level = level;
     
-    // Вывод левого поддерева
     printTree(root->left, level + 1, 0);
 }
 
 void displayTree(Manual *manual) {
-    printf("\n--- Contact Tree Structure ---\n");
+    printf("\n--- Дерево ---\n");
     printTree(manual->root, 0, 0);
     printf("\n");
 }
