@@ -157,7 +157,7 @@ Contact* findContactById(Contact *root, int id) {
 
 void Add_contact_manual(Manual *manual, const char *name, const char *last_name, 
                 const char *patronymic, const char *workplace, const char *job) {
-        Contact *newContact = malloc(sizeof(Contact));
+    Contact *newContact = malloc(sizeof(Contact));
     newContact->ID = manual->id_counter++;
     Init_person(&newContact->person, name, last_name, patronymic, workplace, job);
     Init_contact(newContact);
@@ -340,11 +340,7 @@ void Update_person(Manual *manual, Contact *contact,
 
 void Delete_contact_manual(Manual *manual, int id) {
     manual->root = deleteNode(manual->root, id, manual);
-    manual->operations_counter++;
-    
-    if(manual->operations_counter % BALANCE_FREQUENCY == 0) {
-        BalanceTree(manual);
-    }
+
 }
 
 void Remove_email(Contact *contact, int index) {
