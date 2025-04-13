@@ -1,10 +1,10 @@
 CC = gcc
 CFLAGS = -Wall
 BUILDDIR = build
+TARGET = main
 OBJECTS = $(patsubst %.c, $(BUILDDIR)/%.o, $(wildcard *.c))
-TARGETS = $(patsubst %.c, $(BUILDDIR)/%, $(wildcard *.c))
 
-all: dir $(TARGETS)
+all: dir $(BUILDDIR)/$(TARGET)
 
 dir:
 	mkdir -p $(BUILDDIR)
@@ -12,8 +12,8 @@ dir:
 $(BUILDDIR)/%.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
-$(TARGETS): %: %.o
-	$(CC) $^ $(CFLAGS) -o $@
+$(BUILDDIR)/$(TARGET): $(OBJECTS)
+	$(CC) $(OBJECTS) -Wall -o $@
 
 clean:
 	rm -rf $(BUILDDIR)
