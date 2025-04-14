@@ -10,14 +10,14 @@
 
 int main(int argc, char *argv[]) {
     if (argc != 2) {
-        fprintf(stderr, "Usage: %s <number_count>\n", argv[0]);
+        fprintf(stderr, "Использование: %s <количество_чисел>\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
     char *endptr;
     long count = strtol(argv[1], &endptr, 10);
     if (endptr == argv[1] || *endptr != '\0' || count <= 0 || count > INT_MAX) {
-        fprintf(stderr, "Invalid count\n");
+        fprintf(stderr, "Неверное количество\n");
         exit(EXIT_FAILURE);
     }
     int num_count = (int)count;
@@ -34,12 +34,12 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    if (pid == 0) { // Дочерний процесс
-        close(pipefd[0]); // Закрываем ненужный конец для чтения
+    if (pid == 0) { 
+        close(pipefd[0]); 
 
-        srand(time(NULL) ^ getpid());
+        srand(time(NULL));
         for (int i = 0; i < num_count; i++) {
-            int num = rand() % 100;
+            int num = rand() % 1000;
             if (write(pipefd[1], &num, sizeof(num)) != sizeof(num)) {
                 perror("write");
                 close(pipefd[1]);
@@ -49,8 +49,8 @@ int main(int argc, char *argv[]) {
 
         close(pipefd[1]);
         exit(EXIT_SUCCESS);
-    } else { // Родительский процесс
-        close(pipefd[1]); // Закрываем ненужный конец для записи
+    } else { 
+        close(pipefd[1]); 
 
         int output_fd = open("output.txt", O_WRONLY | O_CREAT | O_TRUNC, 0644);
         if (output_fd == -1) {
@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
                     close(output_fd);
                     exit(EXIT_FAILURE);
                 } else if (bytes_read == 0) {
-                    fprintf(stderr, "Unexpected end of data\n");
+                    fprintf(stderr, "Неожиданный конец передачи данных\n");
                     close(pipefd[0]);
                     close(output_fd);
                     exit(EXIT_FAILURE);
