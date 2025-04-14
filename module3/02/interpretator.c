@@ -54,6 +54,11 @@ int main() {
         } else {
             int status;
             waitpid(pid, &status, 0);
+            if (!WIFEXITED(status))
+            {
+                printf("child not exited");
+                exit(0);
+            }
         }
 
         printf("\n");

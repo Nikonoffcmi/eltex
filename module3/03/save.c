@@ -78,12 +78,20 @@ void load_contact(int fd, Manual *manual) {
 
 void save_manual(Manual *manual) {
     int fd = open(DATA_FILE, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-    if(fd == -1) return;
+    if(fd == -1){
+        perror("open");
+        return;
+    } 
 
     int count = 0;
     Contact *current = manual->head;
     while(current) { count++; current = current->next; }
-    write(fd, &count, sizeof(int));
+    
+    if (write(fd, &count, sizeof(int)) == -1) {
+        perror("write");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
 
     current = manual->head;
     while(current) {
@@ -95,10 +103,17 @@ void save_manual(Manual *manual) {
 
 void load_manual(Manual *manual) {
     int fd = open(DATA_FILE, O_RDONLY);
-    if(fd == -1) return;
+    if(fd == -1){
+        perror("open");
+        return;
+    } 
 
     int count;
-    read(fd, &count, sizeof(int));
+    if (read(fd, &count, sizeof(int)) == -1) {
+        perror("read");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
     
     for(int i = 0; i < count; i++) {
         load_contact(fd, manual);
