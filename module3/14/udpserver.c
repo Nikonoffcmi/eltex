@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -12,10 +11,10 @@
 #define BUFFER_SIZE 1024
 
 int main() {
-    char buffer[BUFFER_SIZE];
-    char message[BUFFER_SIZE]; 
     int sockfd;
-    struct sockaddr_in server_addr;
+    struct sockaddr_in server_addr, client1_addr, client2_addr;
+    char buffer[BUFFER_SIZE];
+    int client1_connected = 0, client2_connected = 0;
 
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0) {
@@ -34,6 +33,8 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
+    printf("Сервер запущен на порту %d\n", PORT);
+
     while (1) {
         struct sockaddr_in client_addr;
         socklen_t client_len = sizeof(client_addr);
@@ -43,18 +44,44 @@ int main() {
             continue;
         }
         buffer[recv_len] = '\0';
-        printf("Получено: %s\n", buffer); 
-        if (strcmp(buffer, "exit\n") == 0)
-            break;
 
-        
-        printf("Введите сообщение: ");
-        if (!fgets(message, BUFFER_SIZE, stdin)) break;
+        int is_client1 = 0, is_client2 = 0;
+        if (client1_connected) {
+            if (client_addr.sin_port == client1_addr.sin_port && 
+                client_addr.sin_addr.s_addr == client1_addr.sin_addr.s_addr) {
+                is_client1 = 1;
+            }
+        }
+        if (client2_connected) {
+            if (client_addr.sin_port == client2_addr.sin_port && 
+                client_addr.sin_addr.s_addr == client2_addr.sin_addr.s_addr) {
+                is_client2 = 1;
+            }
+        }
 
-        sendto(sockfd, message, strlen(message), 0, (struct sockaddr*)&client_addr, sizeof(client_addr));
-        
-        if (strcmp(message, "exit\n") == 0) {
-            break;
+        if (!is_client1 && !is_client2) {
+            if (!client1_connected) {
+                client1_addr = client_addr;
+                client1_connected = 1;
+                printf("Клиент 1 подключен: %s:%d\n", 
+                        inet_ntoa(client1_addr.sin_addr), ntohs(client1_addr.sin_port));
+            } else if (!client2_connected) {
+                client2_addr = client_addr;
+                client2_connected = 1;
+                printf("Клиент 2 подключен: %s:%d\n", 
+                        inet_ntoa(client2_addr.sin_addr), ntohs(client2_addr.sin_port));
+            } else {
+                printf("Достигнут лимит клиентов.\n");
+                continue;
+            }
+        }
+
+        if (client1_connected && client2_connected) {
+            struct sockaddr_in *target = is_client1 ? &client2_addr : &client1_addr;
+            if (sendto(sockfd, buffer, recv_len, 0, (struct sockaddr*)target, sizeof(*target)) < 0) {
+                perror("sendto");
+            }
+            if (strcmp(buffer, "exit\n") == 0) break;
         }
     }
 

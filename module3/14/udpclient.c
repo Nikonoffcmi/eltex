@@ -1,57 +1,64 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
 #include <unistd.h>
-#include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/select.h>
 
 #define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 8159
 #define BUFFER_SIZE 1024
 
 int main() {
-    char buffer[BUFFER_SIZE]; 
-    char message[BUFFER_SIZE]; 
     int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     if (sockfd < 0) {
-        perror("socket");
+        perror("Ошибка создания сокета");
         exit(EXIT_FAILURE);
     }
 
-    struct sockaddr_in server_addr;
-    bzero(&server_addr, sizeof(server_addr)); 
-    server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(SERVER_PORT);
+    struct sockaddr_in server_addr = {
+        .sin_family = AF_INET,
+        .sin_port = htons(SERVER_PORT)
+    };
     if (inet_pton(AF_INET, SERVER_IP, &server_addr.sin_addr) <= 0) {
         perror("inet_pton");
         close(sockfd);
         exit(EXIT_FAILURE);
     }
 
+
+    printf("Введите сообщение: ");
+    fd_set read_fds;
     while (1) {
-        printf("Введите сообщение: ");
-
-        if (!fgets(message, BUFFER_SIZE, stdin)) break;
-
-        sendto(sockfd, message, strlen(message), 0, (struct sockaddr*)&server_addr, sizeof(server_addr));
+        FD_ZERO(&read_fds);
+        FD_SET(sockfd, &read_fds);
+        FD_SET(STDIN_FILENO, &read_fds);
         
-        if (strcmp(message, "exit\n") == 0) {
+        if (select(sockfd + 1, &read_fds, NULL, NULL, NULL) < 0) {
+            perror("select");
             break;
         }
 
-        int len = recvfrom(sockfd, buffer, BUFFER_SIZE, 0, NULL, NULL); 
-        if (len < 0) {
-            perror("recvfrom");
-            continue;
-        } else {
-            buffer[len] = '\0'; 
-            printf("Получено: %s\n", buffer); 
-            if (strcmp(buffer, "exit\n") == 0)
-                break;
-        }  
+        if (FD_ISSET(STDIN_FILENO, &read_fds)) {
+            char msg[BUFFER_SIZE];
+            if (!fgets(msg, BUFFER_SIZE, stdin)) break;
+            sendto(sockfd, msg, strlen(msg), 0, (struct sockaddr*)&server_addr, sizeof(server_addr));
+            if (strcmp(msg, "exit\n") == 0) break;
+        }
+
+        if (FD_ISSET(sockfd, &read_fds)) {
+            char buf[BUFFER_SIZE];
+            ssize_t len = recvfrom(sockfd, buf, BUFFER_SIZE, 0, NULL, NULL);
+            if (len < 0) {
+                perror("recvfrom");
+                continue;
+            }
+            buf[len] = '\0';
+            printf("Получено: %s", buf);
+            if (strcmp(buf, "exit\n") == 0) break;
+        }
     }
 
     close(sockfd);
