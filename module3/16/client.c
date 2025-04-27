@@ -17,7 +17,6 @@ void error(const char *msg) {
 }
 
 void send_file(int sock, const char *filename) {
-    int n;
     char buff[BUFFER_SIZE];
     int fd = open(filename, O_RDONLY);
     if (fd < 0) {
@@ -25,31 +24,33 @@ void send_file(int sock, const char *filename) {
         return;
     }
     
-    // Получаем размер файла
     long file_size = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
     
-    
-    // Отправляем заголовок
-    send(sock, "FILE", 4, 0);
-    n = recv(sock, buff, sizeof(buff)-1, 0);
-    
-    // Отправляем имя файла и размер
-    send(sock, filename, strlen(filename), 0);
-    n = recv(sock, buff, sizeof(buff)-1, 0);
+    if (send(sock, "FILE", 4, 0) < 0) 
+        error("ERROR send operation");
 
-    send(sock, &file_size, sizeof(file_size), 0);
-    n = recv(sock, buff, sizeof(buff)-1, 0);
-
+    if (recv(sock, buff, sizeof(buff)-1, 0) < 0)
+        error("ERROR recv operation");
     
-    // Отправляем содержимое файла
-    char buffer[BUFFER_SIZE];
+    if (send(sock, filename, strlen(filename), 0) < 0) 
+        error("ERROR send operation");
+
+    if (recv(sock, buff, sizeof(buff)-1, 0) < 0)
+        error("ERROR recv operation");
+    
+    if (send(sock, &file_size, sizeof(file_size), 0) < 0) 
+        error("ERROR send operation");
+
+    if (recv(sock, buff, sizeof(buff)-1, 0) < 0)
+        error("ERROR recv operation");
+    
     long total = 0;
     
     while (total < file_size) {
-        int bytes = read(fd, buffer, BUFFER_SIZE);
+        int bytes = read(fd, buff, BUFFER_SIZE);
         if (bytes <= 0) break;
-        send(sock, buffer, bytes, 0);
+        send(sock, buff, bytes, 0);
         total += bytes;
     }
     
