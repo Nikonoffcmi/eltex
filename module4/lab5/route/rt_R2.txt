@@ -1,0 +1,26 @@
+=~=~=~=~=~=~=~=~=~=~=~= PuTTY log 2025.05.21 19:37:34 =~=~=~=~=~=~=~=~=~=~=~=
+do sh ip route
+Codes: C - connected, S - static, R - RIP, M - mobile, B - BGP
+       D - EIGRP, EX - EIGRP external, O - OSPF, IA - OSPF inter area 
+       N1 - OSPF NSSA external type 1, N2 - OSPF NSSA external type 2
+       E1 - OSPF external type 1, E2 - OSPF external type 2
+       i - IS-IS, su - IS-IS summary, L1 - IS-IS level-1, L2 - IS-IS level-2
+       ia - IS-IS inter area, * - candidate default, U - per-user static route
+       o - ODR, P - periodic downloaded static route
+
+Gateway of last resort is not set
+
+O    192.168.4.0/24 [110/3] via 10.0.62.1, 01:20:17, FastEthernet1/0
+O IA 192.168.5.0/24 [110/3] via 10.0.0.3, 01:20:07, FastEthernet0/0
+     10.0.0.0/24 is subnetted, 7 subnets
+C       10.0.0.0 is directly connected, FastEthernet0/0
+O E2    10.0.45.0 [110/10] via 10.0.0.1, 01:19:57, FastEthernet0/0
+C       10.0.62.0 is directly connected, FastEthernet1/0
+O E2    10.0.51.0 [110/10] via 10.0.0.1, 01:19:57, FastEthernet0/0
+O       10.0.73.0 [110/3] via 10.0.62.1, 01:20:17, FastEthernet1/0
+O       10.0.67.0 [110/2] via 10.0.62.1, 01:20:18, FastEthernet1/0
+O IA    10.0.83.0 [110/2] via 10.0.0.3, 01:20:08, FastEthernet0/0
+O E2 192.168.1.0/24 [110/10] via 10.0.0.1, 00:55:10, FastEthernet0/0
+O E2 192.168.2.0/24 [110/10] via 10.0.0.1, 01:19:58, FastEthernet0/0
+O    192.168.3.0/24 [110/2] via 10.0.62.1, 01:20:18, FastEthernet1/0
+R2(config)#
