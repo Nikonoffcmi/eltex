@@ -83,11 +83,11 @@ int main(int argc, char *argv[]) {
 
     if (sigaction(SIGINT, &sa, NULL) == -1) {
         perror("sigaction");
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
     if (sigaction(SIGTERM, &sa, NULL) == -1) {
         perror("sigaction");
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
 
     int server_port = atoi(argv[1]);

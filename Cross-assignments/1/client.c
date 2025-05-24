@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
 
     if (sigaction(SIGINT, &sa, NULL) == -1) {
         perror("sigaction");
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
 
     int sockfd = socket(AF_INET, SOCK_RAW, IPPROTO_UDP);
