@@ -134,11 +134,11 @@ int main(int argc, char *argv[]) {
                             state = BUSY;
                             
                             if (dprintf(resp_fd, "ACCEPTED\n") < 0){
-                                perror("timerfd_settime");
+                                perror("dprintf ACCEPTED");
                                 exit(EXIT_FAILURE);
                             }
                             if (dprintf(resp_fd, "STATUS_UPDATE Busy %d\n", task_timer) < 0){
-                                perror("timerfd_settime");
+                                perror("dprintf STATUS_UPDATE Busy");
                                 exit(EXIT_FAILURE);
                             }
                         } else {
@@ -149,14 +149,14 @@ int main(int argc, char *argv[]) {
                             int remaining = curr.it_value.tv_sec;
                             if (curr.it_value.tv_nsec > 0) remaining++;
                             if (dprintf(resp_fd, "Busy %d\n", remaining) < 0){
-                                perror("timerfd_settime");
+                                perror("dprintf Busy");
                                 exit(EXIT_FAILURE);
                             }
                         }
                     } else if (strcmp(msg, "GET_STATUS") == 0) {
                         if (state == AVAILABLE) {
                             if (dprintf(resp_fd, "STATUS Available\n") < 0){
-                                perror("timerfd_settime");
+                                perror("dprintf STATUS Available");
                                 exit(EXIT_FAILURE);
                             }
                         } else {
@@ -165,7 +165,7 @@ int main(int argc, char *argv[]) {
                             int remaining = curr.it_value.tv_sec;
                             if (curr.it_value.tv_nsec > 0) remaining++;
                             if (dprintf(resp_fd, "STATUS Busy %d\n", remaining) < 0){
-                                perror("timerfd_settime");
+                                perror("dprintf STATUS Busy");
                                 exit(EXIT_FAILURE);
                             }
                         }
@@ -177,7 +177,7 @@ int main(int argc, char *argv[]) {
                 read(timer_fd, &exp, sizeof(exp));
                 state = AVAILABLE;
                 if (dprintf(resp_fd, "STATUS_UPDATE Available\n") < 0){
-                    perror("timerfd_settime");
+                    perror("dprintf STATUS_UPDATE Available");
                     exit(EXIT_FAILURE);
                 }
             }

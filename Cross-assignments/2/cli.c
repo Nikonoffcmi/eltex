@@ -107,8 +107,15 @@ void handle_user_input() {
             char cmd_pipe[BUFF_SIZE], resp_pipe[BUFF_SIZE];
             snprintf(cmd_pipe, sizeof(cmd_pipe), "/tmp/driver_%d_cmd", pid);
             snprintf(resp_pipe, sizeof(resp_pipe), "/tmp/driver_%d_resp", pid);
-            mkfifo(cmd_pipe, 0666);
-            mkfifo(resp_pipe, 0666);
+            
+            if (mkfifo(cmd_pipe, 0666) < 0) {
+                perror("mkfifo cmd_pipe");
+                exit(EXIT_FAILURE);
+            }
+            if (mkfifo(resp_pipe, 0666) < 0) {
+                perror("mkfifo resp_pipe");
+                exit(EXIT_FAILURE);
+            }
 
             int resp_fd = open(resp_pipe, O_RDONLY | O_NONBLOCK);
             if (resp_fd == -1) {
@@ -152,7 +159,7 @@ void handle_user_input() {
         }
 
         if (dprintf(cmd_fd, "SEND_TASK %d\n", task_timer) < 0){
-            perror("timerfd_settime");
+            perror("dprintf SEND_TASK");
             exit(EXIT_FAILURE);
         }
         close(cmd_fd);
@@ -174,7 +181,7 @@ void handle_user_input() {
             return;
         }
         if (dprintf(cmd_fd, "GET_STATUS\n") < 0){
-            perror("timerfd_settime");
+            perror("dprintf GET_STATUS");
             exit(EXIT_FAILURE);
         }
         close(cmd_fd);
