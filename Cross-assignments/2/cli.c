@@ -151,7 +151,10 @@ void handle_user_input() {
             return;
         }
 
-        dprintf(cmd_fd, "SEND_TASK %d\n", task_timer);
+        if (dprintf(cmd_fd, "SEND_TASK %d\n", task_timer) < 0){
+            perror("timerfd_settime");
+            exit(EXIT_FAILURE);
+        }
         close(cmd_fd);
     } else if (strcmp(cmd, "get_status") == 0) {
         char *pid_str = strtok(NULL, " ");
@@ -170,7 +173,10 @@ void handle_user_input() {
             perror("open cmd_pipe");
             return;
         }
-        dprintf(cmd_fd, "GET_STATUS\n");
+        if (dprintf(cmd_fd, "GET_STATUS\n") < 0){
+            perror("timerfd_settime");
+            exit(EXIT_FAILURE);
+        }
         close(cmd_fd);
     } else if (strcmp(cmd, "get_drivers") == 0) {
         printf("Drivers:\n");
@@ -225,6 +231,7 @@ void handle_response(int fd) {
             driver->status = BUSY;
             driver->remaining = atoi(msg + busy_len);
             printf("Driver %d is busy with %d seconds remaining\n", driver->pid, driver->remaining);
+            print_prompt();
         } else if (strcmp(msg, accepted) == 0) {
             printf("Task accepted by driver %d\n", driver->pid);
             print_prompt();

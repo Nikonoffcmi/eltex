@@ -132,8 +132,15 @@ int main(int argc, char *argv[]) {
                                 perror("timerfd_settime");
                             }
                             state = BUSY;
-                            dprintf(resp_fd, "ACCEPTED\n");
-                            dprintf(resp_fd, "STATUS_UPDATE Busy %d\n", task_timer); 
+                            
+                            if (dprintf(resp_fd, "ACCEPTED\n") < 0){
+                                perror("timerfd_settime");
+                                exit(EXIT_FAILURE);
+                            }
+                            if (dprintf(resp_fd, "STATUS_UPDATE Busy %d\n", task_timer) < 0){
+                                perror("timerfd_settime");
+                                exit(EXIT_FAILURE);
+                            }
                         } else {
                             uint64_t exp;
                             read(timer_fd, &exp, sizeof(exp));
@@ -141,17 +148,26 @@ int main(int argc, char *argv[]) {
                             timerfd_gettime(timer_fd, &curr);
                             int remaining = curr.it_value.tv_sec;
                             if (curr.it_value.tv_nsec > 0) remaining++;
-                            dprintf(resp_fd, "Busy %d\n", remaining);
+                            if (dprintf(resp_fd, "Busy %d\n", remaining) < 0){
+                                perror("timerfd_settime");
+                                exit(EXIT_FAILURE);
+                            }
                         }
                     } else if (strcmp(msg, "GET_STATUS") == 0) {
                         if (state == AVAILABLE) {
-                            dprintf(resp_fd, "STATUS Available\n");
+                            if (dprintf(resp_fd, "STATUS Available\n") < 0){
+                                perror("timerfd_settime");
+                                exit(EXIT_FAILURE);
+                            }
                         } else {
                             struct itimerspec curr;
                             timerfd_gettime(timer_fd, &curr);
                             int remaining = curr.it_value.tv_sec;
                             if (curr.it_value.tv_nsec > 0) remaining++;
-                            dprintf(resp_fd, "STATUS Busy %d\n", remaining);
+                            if (dprintf(resp_fd, "STATUS Busy %d\n", remaining) < 0){
+                                perror("timerfd_settime");
+                                exit(EXIT_FAILURE);
+                            }
                         }
                     }
                     msg = strtok(NULL, "\n");
@@ -160,7 +176,10 @@ int main(int argc, char *argv[]) {
                 uint64_t exp;
                 read(timer_fd, &exp, sizeof(exp));
                 state = AVAILABLE;
-                dprintf(resp_fd, "STATUS_UPDATE Available\n");
+                if (dprintf(resp_fd, "STATUS_UPDATE Available\n") < 0){
+                    perror("timerfd_settime");
+                    exit(EXIT_FAILURE);
+                }
             }
         }
     }
