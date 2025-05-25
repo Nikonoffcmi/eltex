@@ -67,70 +67,10 @@ DriverInfo* find_driver_by_resp_fd(int fd) {
     return NULL;
 }
 
-void handle_response(int fd) {
-    char buf[BUFF_SIZE];
-    ssize_t len;
-    
-    DriverInfo *driver = find_driver_by_resp_fd(fd);
-    if (!driver) {
-        fprintf(stderr, "Unknown response fd %d\n", fd);
-        return;
-    }
-
-    while (1) {
-        len = read(fd, buf, BUFF_SIZE - 1);
-        if (len == -1) {
-            if (errno == EAGAIN || errno == EWOULDBLOCK) break;
-            perror("read");
-            break;
-        } else if (len == 0) {
-            break;
-        }
-        buf[len] = '\0';
-
-        char *msg = strtok(buf, "\n");
-        while (msg != NULL) {
-            char status_update[] = "STATUS_UPDATE ";
-            char busy[] = "Busy ";
-            char available[] = "Available";
-            char accepted[] = "ACCEPTED";
-            char status_prefix[] = "STATUS ";
-
-            size_t status_update_len = strlen(status_update);
-            size_t busy_len = strlen(busy);
-            size_t status_prefix_len = strlen(status_prefix);
-
-            if (strncmp(msg, status_update, status_update_len) == 0) {
-                char *status_ptr = msg + status_update_len;
-                if (strncmp(status_ptr, busy, busy_len) == 0) {
-                    driver->status = BUSY;
-                    driver->remaining = atoi(status_ptr + busy_len);
-                } else if (strcmp(status_ptr, available) == 0) {
-                    driver->status = AVAILABLE;
-                    driver->remaining = 0;
-                }
-            } else if (strncmp(msg, busy, busy_len) == 0) {
-                driver->status = BUSY;
-                driver->remaining = atoi(msg + busy_len);
-                printf("Driver %d is busy with %d seconds remaining\n", driver->pid, driver->remaining);
-            } else if (strcmp(msg, accepted) == 0) {
-                printf("Task accepted by driver %d\n", driver->pid);
-            } else if (strncmp(msg, status_prefix, status_prefix_len) == 0) {
-                char *status_response = msg + status_prefix_len;
-                if (strncmp(status_response, busy, busy_len) == 0) {
-                    driver->status = BUSY;
-                    driver->remaining = atoi(status_response + busy_len);
-                } else if (strcmp(status_response, available) == 0) {
-                    driver->status = AVAILABLE;
-                    driver->remaining = 0;
-                }
-                printf("Driver %d status: %s\n", driver->pid, status_response);
-            }
-            msg = strtok(NULL, "\n");
-        }
-    }
+void print_prompt() {
+    printf("\n> ");
+    fflush(stdout);
 }
-
 
 void handle_user_input() {
     char buf[BUFF_SIZE];
@@ -143,7 +83,10 @@ void handle_user_input() {
     buf[strcspn(buf, "\n")] = '\0';
 
     char *cmd = strtok(buf, " ");
-    if (cmd == NULL) return;
+    if (cmd == NULL){
+        print_prompt();
+        return;
+    } 
 
     if (strcmp(cmd, "create_driver") == 0) {
         pid_t pid = fork();
@@ -174,7 +117,7 @@ void handle_user_input() {
             }
 
             struct epoll_event event;
-            event.events = EPOLLIN;
+            event.events = EPOLLIN | EPOLLET;
             event.data.fd = resp_fd;
             if (epoll_ctl(epoll_fd, EPOLL_CTL_ADD, resp_fd, &event) == -1) {
                 perror("epoll_ctl");
@@ -184,6 +127,7 @@ void handle_user_input() {
 
             add_driver(pid, cmd_pipe, resp_pipe, resp_fd);
             printf("Driver created with PID %d\n", pid);
+            print_prompt();
         }
     } else if (strcmp(cmd, "send_task") == 0) {
         char *pid_str = strtok(NULL, " ");
@@ -201,18 +145,11 @@ void handle_user_input() {
             printf("Driver %d not found\n", pid);
             return;
         }
-
-        int cmd_fd;
-        int retries = 3;
-        do {
-            cmd_fd = open(driver->cmd_pipe, O_WRONLY | O_NONBLOCK);
-            if (cmd_fd == -1 && errno == ENXIO && retries > 0) {
-                sleep(1); 
-                retries--;
-            } else {
-                break;
-            }
-        } while (1);
+        int cmd_fd = open(driver->cmd_pipe, O_WRONLY | O_NONBLOCK);
+        if (cmd_fd == -1) {
+            perror("open cmd_pipe");
+            return;
+        }
 
         dprintf(cmd_fd, "SEND_TASK %d\n", task_timer);
         close(cmd_fd);
@@ -238,49 +175,72 @@ void handle_user_input() {
     } else if (strcmp(cmd, "get_drivers") == 0) {
         printf("Drivers:\n");
         for (int i = 0; i < driver_count; i++) {
-            int cmd_fd;
-            int retries = 5;
-            do {
-                cmd_fd = open(drivers[i].cmd_pipe, O_WRONLY | O_NONBLOCK);
-                if (cmd_fd == -1) {
-                    if (errno == ENXIO && retries-- > 0) {
-                        usleep(100000);
-                        continue;
-                    }
-                    printf("Driver %d: pipe error (%s)\n", drivers[i].pid, strerror(errno));
-                    break;
-                }
-            } while(0);
-
-            if (cmd_fd != -1) {
-                dprintf(cmd_fd, "GET_STATUS\n");
-                close(cmd_fd);
-            }
-
-            struct timespec start, now;
-            clock_gettime(CLOCK_MONOTONIC, &start);
-            int responded = 0;
-            
-            do {
-                struct epoll_event events[MAX_EVENTS];
-                int n = epoll_wait(epoll_fd, events, MAX_EVENTS, 100);
-                
-                for (int j = 0; j < n; j++) {
-                    if (events[j].data.fd == drivers[i].resp_fd) {
-                        handle_response(drivers[i].resp_fd);
-                        responded = 1;
-                    }
-                }
-                
-                clock_gettime(CLOCK_MONOTONIC, &now);
-            } while (!responded && (now.tv_sec - start.tv_sec < 3));
-            
-            if (!responded) {
-                printf("Driver %d: no response\n", drivers[i].pid);
-            }
+            const char *status = drivers[i].status == AVAILABLE ? "Available" : "Busy";
+            printf("Driver %d status: %s\n", drivers[i].pid, status);
         }
+        print_prompt();
     } else {
         printf("Unknown command: %s\n", cmd);
+        print_prompt();
+    }
+}
+
+void handle_response(int fd) {
+    char buf[BUFF_SIZE];
+    ssize_t len = read(fd, buf, BUFF_SIZE - 1);
+    if (len < 0 && errno != EAGAIN) {
+        perror("read response");
+        return;
+    }
+    buf[len] = '\0';
+
+    DriverInfo *driver = find_driver_by_resp_fd(fd);
+    if (!driver) {
+        fprintf(stderr, "Unknown response fd %d\n", fd);
+        return;
+    }
+
+    char *msg = strtok(buf, "\n");
+    while (msg != NULL) {
+        char status_update[] = "STATUS_UPDATE ";
+        char busy[] = "Busy ";
+        char available[] = "Available";
+        char accepted[] = "ACCEPTED";
+        char status_prefix[] = "STATUS ";
+
+        size_t status_update_len = strlen(status_update);
+        size_t busy_len = strlen(busy);
+        size_t status_prefix_len = strlen(status_prefix);
+
+        if (strlen(msg) >= status_update_len && strncmp(msg, status_update, status_update_len) == 0) {
+            char *status_ptr = msg + status_update_len;
+            if (strncmp(status_ptr, busy, busy_len) == 0) {
+                driver->status = BUSY;
+                driver->remaining = atoi(status_ptr + busy_len);
+            } else if (strcmp(status_ptr, available) == 0) {
+                driver->status = AVAILABLE;
+                driver->remaining = 0;
+            }
+        } else if (strlen(msg) >= busy_len && strncmp(msg, busy, busy_len) == 0) {
+            driver->status = BUSY;
+            driver->remaining = atoi(msg + busy_len);
+            printf("Driver %d is busy with %d seconds remaining\n", driver->pid, driver->remaining);
+        } else if (strcmp(msg, accepted) == 0) {
+            printf("Task accepted by driver %d\n", driver->pid);
+            print_prompt();
+        } else if (strlen(msg) >= status_prefix_len && strncmp(msg, status_prefix, status_prefix_len) == 0) {
+            char *status_response = msg + status_prefix_len;
+            if (strncmp(status_response, busy, busy_len) == 0) {
+                driver->status = BUSY;
+                driver->remaining = atoi(status_response + busy_len);
+            } else if (strcmp(status_response, available) == 0) {
+                driver->status = AVAILABLE;
+                driver->remaining = 0;
+            }
+            printf("Driver %d status: %s\n", driver->pid, status_response);
+            print_prompt();
+        }
+        msg = strtok(NULL, "\n");
     }
 }
 
@@ -301,6 +261,9 @@ int main() {
 
     struct epoll_event events[MAX_EVENTS];
 
+    printf("--------------- Taxi manger ---------------\n");
+    printf("commands: create_driver, send_task, get_status, get_drivers\n> ");
+    fflush(stdout);
     while (1) {
         int n = epoll_wait(epoll_fd, events, MAX_EVENTS, epoll_timeout);
         if (n == -1) {

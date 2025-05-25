@@ -10,7 +10,7 @@
 #include <time.h>
 #include <errno.h>
 
-#define BUFF_SIZE 256
+#define BUF_SIZE 256
 
 typedef enum {
     AVAILABLE,
@@ -37,22 +37,6 @@ void reopen_cmd_pipe(int* cmd_fd, int epoll_fd, const char* cmd_pipe) {
         perror("epoll_ctl cmd_fd");
         exit(EXIT_FAILURE);
     }
-}
-
-int robust_write(int fd, const char *data) {
-    int retries = 3;
-    size_t len = strlen(data);
-    
-    while (retries-- > 0) {
-        ssize_t written = write(fd, data, len);
-        if (written == len) return 0;
-        if (written < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-            usleep(10000);
-            continue;
-        }
-        return -1;
-    }
-    return -1;
 }
 
 int main(int argc, char *argv[]) {
@@ -117,20 +101,20 @@ int main(int argc, char *argv[]) {
                     continue;
                 }
 
-                char buf[BUFF_SIZE];
-                ssize_t total_read = 0;
-                
-                while (1) {
-                    ssize_t len = read(cmd_fd, buf + total_read, BUFF_SIZE - total_read - 1);
-                    if (len <= 0) {
-                        if (len == -1 && (errno == EAGAIN || errno == EWOULDBLOCK)) break;
-                        if (len == 0) reopen_cmd_pipe(&cmd_fd, epoll_fd, cmd_pipe);
-                        break;
-                    }
-                    total_read += len;
+                char buf[BUF_SIZE];
+                ssize_t len = read(cmd_fd, buf, BUF_SIZE - 1);
+                if (len == 0) {
+                    reopen_cmd_pipe(&cmd_fd, epoll_fd, cmd_pipe);
+                    continue;
                 }
                 
-                buf[total_read] = '\0';
+                if (len < 0) {
+                    if (errno == EAGAIN) continue;
+                    perror("read cmd_fd");
+                    continue;
+                }
+
+                buf[len] = '\0';
 
                 char *msg = strtok(buf, "\n");
                 while (msg != NULL) {
@@ -147,16 +131,9 @@ int main(int argc, char *argv[]) {
                             if (timerfd_settime(timer_fd, 0, &timer_spec, NULL) == -1) {
                                 perror("timerfd_settime");
                             }
-
                             state = BUSY;
-                            if (robust_write(resp_fd, "ACCEPTED\n") < 0) {
-                                perror("write status failed");
-                            }
-                            char buf[BUFF_SIZE];
-                            snprintf(buf, sizeof(buf), "STATUS_UPDATE Busy %d\n", task_timer);
-                            if (robust_write(resp_fd, buf) < 0) {
-                                perror("write status failed");
-                            }
+                            dprintf(resp_fd, "ACCEPTED\n");
+                            dprintf(resp_fd, "STATUS_UPDATE Busy %d\n", task_timer); 
                         } else {
                             uint64_t exp;
                             read(timer_fd, &exp, sizeof(exp));
@@ -164,29 +141,17 @@ int main(int argc, char *argv[]) {
                             timerfd_gettime(timer_fd, &curr);
                             int remaining = curr.it_value.tv_sec;
                             if (curr.it_value.tv_nsec > 0) remaining++;
-                            
-                            char buf[BUFF_SIZE];
-                            snprintf(buf, sizeof(buf), "Busy %d\n", remaining);
-                            if (robust_write(resp_fd, buf) < 0) {
-                                perror("write status failed");
-                            }
+                            dprintf(resp_fd, "Busy %d\n", remaining);
                         }
                     } else if (strcmp(msg, "GET_STATUS") == 0) {
                         if (state == AVAILABLE) {
-                            if (robust_write(resp_fd, "STATUS Available\n") < 0) {
-                                perror("write status failed");
-                            }
+                            dprintf(resp_fd, "STATUS Available\n");
                         } else {
                             struct itimerspec curr;
                             timerfd_gettime(timer_fd, &curr);
                             int remaining = curr.it_value.tv_sec;
                             if (curr.it_value.tv_nsec > 0) remaining++;
-                            
-                            char buf[BUFF_SIZE];
-                            snprintf(buf, sizeof(buf), "STATUS Busy %d\n", remaining);
-                            if (robust_write(resp_fd, buf) < 0) {
-                                perror("write status failed");
-                            }
+                            dprintf(resp_fd, "STATUS Busy %d\n", remaining);
                         }
                     }
                     msg = strtok(NULL, "\n");
@@ -195,9 +160,7 @@ int main(int argc, char *argv[]) {
                 uint64_t exp;
                 read(timer_fd, &exp, sizeof(exp));
                 state = AVAILABLE;
-                if (robust_write(resp_fd, "STATUS_UPDATE Available\n") < 0) {
-                    perror("write status failed");
-                }
+                dprintf(resp_fd, "STATUS_UPDATE Available\n");
             }
         }
     }
