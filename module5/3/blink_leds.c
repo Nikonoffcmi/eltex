@@ -1,10 +1,10 @@
 #include <linux/module.h>
 #include <linux/configfs.h>
 #include <linux/init.h>
-#include <linux/tty.h> /* For fg_console, MAX_NR_CONSOLES */
-#include <linux/kd.h>  /* For KDSETLED */
+#include <linux/tty.h>
+#include <linux/kd.h> 
 #include <linux/vt.h>
-#include <linux/console_struct.h> /* For vc_cons */
+#include <linux/console_struct.h> 
 #include <linux/vt_kern.h>
 #include <linux/timer.h>
 #include <linux/printk.h>

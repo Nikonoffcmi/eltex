@@ -1,4 +1,4 @@
-obj-m += malosolnyi.o
+obj-m += blink_leds.o
 
 all:
 	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
